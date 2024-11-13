@@ -259,6 +259,27 @@ int main()
                 if(tetrominos[index_tetromino][rotate(px, py, orientation_current)] != '.')
                   field[(y_current + py) * width_field + (x_current + px)] = index_tetromino + 1;
             
+            // check for lines
+            for(int py = 0; py < 4; py++)
+            {
+              if(y_current + py < height_field)
+              {
+                bool is_line = true;
+                for(int px = 1; px < width_field - 1; px++)
+                {
+                  is_line &= (field[(y_current+py)*width_field + px] != 0);
+                }
+
+                if(is_line)
+                {
+                  for(int px = 1; px < width_field - 1; px++)
+                  {
+                    field[(y_current + py)*width_field + px] = 8;
+                  }
+                }
+              }
+            }
+
             // pick new piece
             x_current = width_field / 2;
             y_current = 0;
