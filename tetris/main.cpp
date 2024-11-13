@@ -220,6 +220,7 @@ int main()
     int speed = 20;
     int speed_count = 0;
     bool force_down = false;
+    std::vector<int> lines;
 
     while (!window::should_close())
     {
@@ -276,6 +277,7 @@ int main()
                   {
                     field[(y_current + py)*width_field + px] = 8;
                   }
+                  lines.push_back(y_current + py);
                 }
               }
             }
@@ -353,6 +355,21 @@ int main()
           }
         }
         // ---
+
+        if(!lines.empty())
+        {
+          for(auto &v : lines)
+          {
+            for(int px = 1; px < width_field - 1; px++)
+            {
+              for (int py = v; py > 0; py--)
+              {
+                field[py*width_field + px] = field[(py-1)*width_field + px];
+              }
+            }
+          }
+          lines.clear();
+        }
 
         // Render all accumulated quads (tetrominoes)
         render_batch();
