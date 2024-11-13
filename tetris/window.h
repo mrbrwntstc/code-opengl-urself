@@ -13,10 +13,19 @@ static void error_callback(int error, const char* description)
   fprintf(stderr, "Error: %s\n", description);
 }
 
+static bool key_left = false;
+static bool key_right = false;
+static bool key_down = false;
+static bool key_rotate = false;
+
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GLFW_TRUE);
+  key_left = (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT));
+  key_right = (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT));
+  key_down = (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT));
+  key_rotate = (key == GLFW_KEY_Z && (action == GLFW_PRESS || action == GLFW_REPEAT));
 }
 
 namespace window
@@ -24,6 +33,21 @@ namespace window
   GLFWwindow* window;
   constexpr int width = 800;
   constexpr int height = 600;
+  namespace input
+  {
+    bool left;
+    bool right;
+    bool down;
+    bool rotate;
+
+    void update()
+    {
+      left = key_left;
+      right = key_right;
+      down = key_down;
+      rotate = key_rotate;
+    }
+  }
   void init()
   {
     glfwSetErrorCallback(error_callback);
@@ -63,6 +87,10 @@ namespace window
   bool should_close()
   {
     return glfwWindowShouldClose(window);
+  }
+  void clear_screen()
+  {
+    glClear(GL_COLOR_BUFFER_BIT);
   }
 }
 

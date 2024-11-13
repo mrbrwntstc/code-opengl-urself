@@ -7,9 +7,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 std::string tetrominos[7];
+constexpr int length_block = 30;
 constexpr int width_field = 12;
 constexpr int height_field = 20;
-constexpr int length_block = 30;
 constexpr int start_field = 220;
 constexpr int end_field = 580;
 
@@ -64,23 +64,23 @@ int rotate(int px, int py, int orientation)
 
 bool does_piece_fit(int index_tetrominos, int orientation, int x_topleft, int y_topleft)
 {
-    for (int px = 0; px < 4; px++)
+  for (int px = 0; px < 4; px++)
+  {
+    for (int py = 0; py < 4; py++)
     {
-        for (int py = 0; py < 4; py++)
+      int index_piece = rotate(px, py, orientation);
+      int index_field = (y_topleft + py) * width_field + (x_topleft + px);
+      if (x_topleft + px >= 0 && x_topleft + px < width_field)
+      {
+        if (y_topleft + py >= 0 && y_topleft + py <= height_field)
         {
-            int index_piece = rotate(px, py, orientation);
-            int index_field = (y_topleft + py) * width_field + (x_topleft + px);
-            if (x_topleft + px >= 0 && x_topleft + px < width_field)
-            {
-                if (y_topleft + py >= 0 && y_topleft + py <= height_field)
-                {
-                    if (tetrominos[index_tetrominos][index_piece] != '.' && field[index_field] != 0)
-                        return false;
-                }
-            }
+          if (tetrominos[index_tetrominos][index_piece] != '.' && field[index_field] != 0)
+            return false;
         }
+      }
     }
-    return true;
+  }
+  return true;
 }
 
 void initialize_tetrominos()
@@ -93,6 +93,18 @@ void initialize_tetrominos()
 	tetrominos[4].append(".X...XX...X.....");
 	tetrominos[5].append(".X...X...XX.....");
 	tetrominos[6].append("..X...X..XX.....");
+}
+
+void initialize_field()
+{
+  field = new unsigned char[width_field * height_field + 1];
+  for(int col = 0; col < width_field; col++)
+  {
+    for(int row = 0; row <= height_field; row++)
+    {
+      field[row * width_field + col] = ((col-1) == -1 || (col+1) == width_field || row == height_field) ? 9 : 0;
+    }
+  }
 }
 
 void setup_shaders()
@@ -174,6 +186,8 @@ void setup_buffers()
 
 void render_batch()
 {
+    window::clear_screen();
+
     glBindVertexArray(vao_field);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_field);
 
@@ -184,7 +198,7 @@ void render_batch()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_field);
 
     // Calculate how many indices to draw based on number of quads
-    int num_indices_to_draw = vertices_field.size() / 4 * 6;
+    int num_indices_to_draw = (vertices_field.size() >> 2) * 6;
     glDrawElements(GL_TRIANGLES, num_indices_to_draw, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
@@ -194,17 +208,37 @@ int main()
 {
     window::init();
     initialize_tetrominos();
+    initialize_field();
     setup_shaders();
     setup_buffers();
 
-    int index_tetromino = 2;
+    int index_tetromino = 6;
     int orientation_current = 0;
     int x_current = width_field / 2;
     int y_current = 0;
+    bool rotate_hold = true;
 
     while (!window::should_close())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+        window::input::update();
+
+        // handle player input
+        // Handle player movement
+		    x_current += (window::input::right && does_piece_fit(index_tetromino, orientation_current, x_current + 1, y_current)) ? 1 : 0;
+		    x_current -= (window::input::left && does_piece_fit(index_tetromino, orientation_current, x_current - 1, y_current)) ? 1 : 0;		
+		    y_current += (window::input::down && does_piece_fit(index_tetromino, orientation_current, x_current, y_current + 1)) ? 1 : 0;
+
+        if(window::input::rotate)
+        {
+          orientation_current += (rotate_hold &&  does_piece_fit(index_tetromino, orientation_current + 1, x_current, y_current)) ? 1: 0;
+          rotate_hold = false;
+        }
+        else
+        {
+          rotate_hold = true;
+        }
 
         // draw current tetromino
         // ---
@@ -244,6 +278,6 @@ int main()
     }
 
     window::cleanup();
-    free(field);
+    delete [] field;
     return 0;
 }
