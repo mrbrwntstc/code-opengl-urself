@@ -217,10 +217,15 @@ int main()
     int x_current = width_field / 2;
     int y_current = 0;
     bool rotate_hold = true;
+    int speed = 20;
+    int speed_count = 0;
+    bool force_down = false;
 
     while (!window::should_close())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        speed_count++;
+        force_down = (speed_count == speed);
 
         window::input::update();
 
@@ -240,6 +245,66 @@ int main()
           rotate_hold = true;
         }
 
+        if(force_down)
+        {
+          speed_count = 0;
+          // test if piece can be moved down
+          if(does_piece_fit(index_tetromino, orientation_current, x_current, y_current + 1))
+            y_current += 1;
+          else
+          {
+            // it can't; lock the piece in place
+            for(int px = 0; px < 4; px++)
+              for(int py = 0; py < 4; py++)
+                if(tetrominos[index_tetromino][rotate(px, py, orientation_current)] != '.')
+                  field[(y_current + py) * width_field + (x_current + px)] = index_tetromino + 1;
+            
+            // pick new piece
+            x_current = width_field / 2;
+            y_current = 0;
+            orientation_current = 0;
+            index_tetromino = rand() % 7;
+          }
+        }
+
+        // draw field
+        // ---
+        for(int x = 0; x < width_field; x++)
+        {
+          for(int y = 0; y < height_field; y++)
+          {
+            if(field[y*width_field + x] == 0)
+              continue;
+            
+            float xPos = start_field + x * length_block;
+            float yPos = y * length_block;
+            int color_value = field[y*width_field + x];
+            float color[3] = {
+              static_cast<float>(color_value >> 2 & 0x1),
+              static_cast<float>(color_value >> 1 & 0x1),
+              static_cast<float>(color_value & 0x1)
+            };
+
+            vertex topleft = { {xPos, yPos}, {color[0], color[1], color[2]} };
+            vertex topright = { {xPos + length_block, yPos}, {color[0], color[1], color[2]} };
+            vertex bottomright = { {xPos + length_block, yPos + length_block}, {color[0], color[1], color[2]} };
+            vertex bottomleft = { {xPos, yPos + length_block}, {color[0], color[1], color[2]} };
+
+            vertices_field.push_back(topleft);
+            vertices_field.push_back(topright);
+            vertices_field.push_back(bottomright);
+            vertices_field.push_back(bottomleft);
+          }
+        }
+        // --- draw field
+
+        int color_value = index_tetromino + 1;
+        float color[3] = {
+          static_cast<float>(color_value >> 2 & 0x1),
+          static_cast<float>(color_value >> 1 & 0x1),
+          static_cast<float>(color_value & 0x1)
+        };
+
         // draw current tetromino
         // ---
         for(int px = 0; px < 4; px++)
@@ -253,10 +318,10 @@ int main()
               float yPos = (y_current + py) * length_block;
 
               // Create the 4 vertices for the quad (tetromino block)
-              vertex topleft = { {xPos, yPos}, {1.f, 0.f, 0.f} };
-              vertex topright = { {xPos + length_block, yPos}, {1.f, 0.f, 0.f} };
-              vertex bottomright = { {xPos + length_block, yPos + length_block}, {1.f, 0.f, 0.f} };
-              vertex bottomleft = { {xPos, yPos + length_block}, {1.f, 0.f, 0.f} };
+              vertex topleft = { {xPos, yPos}, {color[0], color[1], color[2]} };
+              vertex topright = { {xPos + length_block, yPos}, {color[0], color[1], color[2]} };
+              vertex bottomright = { {xPos + length_block, yPos + length_block}, {color[0], color[1], color[2]} };
+              vertex bottomleft = { {xPos, yPos + length_block}, {color[0], color[1], color[2]} };
 
               // Add the vertices for the current tetromino
               vertices_field.push_back(topleft);
