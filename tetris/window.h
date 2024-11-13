@@ -22,6 +22,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 namespace window
 {
   GLFWwindow* window;
+  constexpr int width = 800;
+  constexpr int height = 600;
   void init()
   {
     glfwSetErrorCallback(error_callback);
@@ -36,7 +38,7 @@ namespace window
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
   #endif // __APPLE__
 
-    window = glfwCreateWindow(800, 600, "Tetris - OpenGL", NULL, NULL);
+    window = glfwCreateWindow(width, height, "Tetris - OpenGL", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
