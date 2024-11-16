@@ -52,7 +52,7 @@ namespace window
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
  
     glfwMakeContextCurrent(window);
-    gladLoadGL();
+    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1);
   }
 
