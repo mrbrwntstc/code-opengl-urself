@@ -24,58 +24,61 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-namespace window
+namespace render
 {
-  constexpr int width = 640;
-  constexpr int height = 480;
-  GLFWwindow* window = nullptr;
-
-  void init()
+  namespace window
   {
-    glfwSetErrorCallback(error_callback);
- 
-    if (!glfwInit())
-      exit(EXIT_FAILURE);
- 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
- 
-    window = glfwCreateWindow(width, height, "Snake - OpenGL", NULL, NULL);
-    if (!window)
+    constexpr int width = 640;
+    constexpr int height = 480;
+    GLFWwindow* window = nullptr;
+
+    void init()
     {
-      glfwTerminate();
-      exit(EXIT_FAILURE);
+      glfwSetErrorCallback(error_callback);
+  
+      if (!glfwInit())
+        exit(EXIT_FAILURE);
+  
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+      glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  
+      window = glfwCreateWindow(width, height, "Snake - OpenGL", NULL, NULL);
+      if (!window)
+      {
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+      }
+  
+      glfwSetKeyCallback(window, key_callback);
+      glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  
+      glfwMakeContextCurrent(window);
+      gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+      glfwSwapInterval(1);
     }
- 
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
- 
-    glfwMakeContextCurrent(window);
-    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    glfwSwapInterval(1);
-  }
 
-  bool should_close()
-  {
-    return glfwWindowShouldClose(window);
-  }
+    bool should_close()
+    {
+      return glfwWindowShouldClose(window);
+    }
 
-  void cleanup()
-  {
-    glfwDestroyWindow(window);
-    glfwTerminate();
-  }
+    void cleanup()
+    {
+      glfwDestroyWindow(window);
+      glfwTerminate();
+    }
 
-  void flush()
-  {
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-  }
+    void flush()
+    {
+      glfwSwapBuffers(window);
+      glfwPollEvents();
+    }
 
-  void clear_screen()
-  {
-    glClear(GL_COLOR_BUFFER_BIT);
+    void clear_screen()
+    {
+      glClear(GL_COLOR_BUFFER_BIT);
+    }
   }
 }
 
